@@ -1,4 +1,4 @@
-# Adding a collection
+# Adding a collection.
 
 No collection ships with the starter. A site that has no blog should not carry
 routes, schemas, or an RSS endpoint for one.
