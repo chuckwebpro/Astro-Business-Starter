@@ -1,0 +1,75 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Card from '../ui/Card.astro';
+import Heading from '../ui/Heading.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import type { BlockProps } from './types';
+
+export interface ServiceItem {
+  title: string;
+  body: string;
+  href?: string;
+  icon?: string;
+}
+
+interface Props extends BlockProps {
+  items: ServiceItem[];
+  columns?: 2 | 3 | 4;
+}
+
+const {
+  background = 'base',
+  spacing = 'md',
+  align = 'start',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  items,
+  columns = 3,
+} = Astro.props;
+
+// Owns its own grid rather than asking Container to model it.
+const columnClass = {
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+}[columns];
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <ul class:list={['grid w-full gap-6', columnClass]}>
+      {
+        items.map((item) => (
+          <Card as="li" variant="outlined">
+            {item.icon && (
+              <Icon name={item.icon} class="text-brand-600 size-8" aria-hidden="true" />
+            )}
+            <Heading level={titleLevel === 2 ? 3 : 4} size="md">
+              {item.href ? (
+                <a href={item.href} class="text-ink-base no-underline hover:underline">
+                  {item.title}
+                </a>
+              ) : (
+                item.title
+              )}
+            </Heading>
+            <p class="text-ink-muted">{item.body}</p>
+          </Card>
+        ))
+      }
+    </ul>
+  </Container>
+</Section>

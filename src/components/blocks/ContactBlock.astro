@@ -1,0 +1,197 @@
+---
+/**
+ * Formspree contact form.
+ *
+ * `_next` must be an ABSOLUTE url — Formspree ignores relative paths and the
+ * failure looks like a broken form. Trailing slash matches trailingSlash:'always'.
+ *
+ * Without JS the form does a normal POST and Formspree redirects to /thank-you/.
+ * With JS it submits via fetch for inline feedback and fires the conversion.
+ */
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Field from '../ui/Field.astro';
+import FormMessage from '../ui/FormMessage.astro';
+import Button from '../ui/Button.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import { site, formattedAddress } from '../../config/site';
+import type { BlockProps } from './types';
+
+interface Props extends BlockProps {
+  subject?: string;
+  services?: string[];
+  showDetails?: boolean;
+}
+
+const {
+  background = 'base',
+  spacing = 'md',
+  width = 'page',
+  eyebrow,
+  title = 'Get in touch',
+  body,
+  titleLevel = 2,
+  subject = `New enquiry from ${site.name}`,
+  services = [],
+  showDetails = true,
+} = Astro.props;
+
+const action = site.formspreeId ? `https://formspree.io/f/${site.formspreeId}` : '';
+const thankYou = new URL('/thank-you/', site.url).href;
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} layout="row" gap="lg" class="md:items-start">
+    <div class="flex flex-col gap-6 md:w-3/5">
+      <BlockHeader eyebrow={eyebrow} title={title} body={body} level={titleLevel} />
+
+      {
+        !action && (
+          <p class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+            No <code>formspreeId</code> in <code>src/config/site.ts</code> — this form will not
+            submit until one is set.
+          </p>
+        )
+      }
+
+      <form
+        id="contact-form"
+        action={action}
+        method="POST"
+        novalidate
+        class="flex w-full flex-col gap-4"
+      >
+        <input type="hidden" name="_subject" value={subject} />
+        <input type="hidden" name="_next" value={thankYou} />
+
+        {/* Honeypot: bots fill it, humans never see it. */}
+        <div class="absolute left-[-9999px]" aria-hidden="true">
+          <label for="_gotcha">Leave this field empty</label>
+          <input type="text" id="_gotcha" name="_gotcha" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <Field name="name" label="Your name" autocomplete="name" required />
+          <Field name="email" label="Email" type="email" autocomplete="email" required />
+          <Field name="phone" label="Phone" type="tel" autocomplete="tel" />
+          {
+            services.length > 0 && (
+              <Field
+                name="service"
+                label="What do you need?"
+                type="select"
+                options={[
+                  { label: 'Select a service', value: '' },
+                  ...services.map((service) => ({ label: service, value: service })),
+                ]}
+              />
+            )
+          }
+        </div>
+
+        <Field
+          name="message"
+          label="How can we help?"
+          type="textarea"
+          help="A short description is plenty — we will follow up with questions."
+          required
+        />
+
+        <FormMessage />
+
+        <Button type="submit" size="lg" class="self-start">Send message</Button>
+      </form>
+    </div>
+
+    {
+      showDetails && (
+        <aside class="bg-surface-muted flex w-full flex-col gap-4 rounded-lg p-6 md:w-2/5">
+          <h3 class="font-semibold">Prefer to talk?</h3>
+
+          <a
+            href={`tel:${site.business.phoneHref}`}
+            data-source="contact-block"
+            class="text-ink-base inline-flex min-h-11 items-center gap-2 no-underline"
+          >
+            <Icon name="lucide:phone" class="text-brand-600 size-5" aria-hidden="true" />
+            {site.business.phone}
+          </a>
+
+          <a
+            href={`mailto:${site.business.email}`}
+            class="text-ink-base inline-flex min-h-11 items-center gap-2 break-all no-underline"
+          >
+            <Icon name="lucide:mail" class="text-brand-600 size-5" aria-hidden="true" />
+            {site.business.email}
+          </a>
+
+          <p class="flex items-start gap-2">
+            <Icon
+              name="lucide:map-pin"
+              class="text-brand-600 mt-1 size-5 shrink-0"
+              aria-hidden="true"
+            />
+            <span>{formattedAddress}</span>
+          </p>
+
+          <dl class="text-ink-muted flex flex-col gap-1 text-sm">
+            <dt class="font-medium">Hours</dt>
+            {site.business.hours.map((line) => (
+              <dd>{line}</dd>
+            ))}
+          </dl>
+        </aside>
+      )
+    }
+  </Container>
+</Section>
+
+<script>
+  import { trackConversion, bindOutboundConversions } from '../../lib/track';
+
+  bindOutboundConversions();
+
+  const form = document.querySelector<HTMLFormElement>('#contact-form');
+  const message = document.querySelector<HTMLElement>('.form-message');
+  const messageText = message?.querySelector<HTMLElement>('.form-message-text');
+
+  const show = (state: 'error' | 'success', text: string) => {
+    if (!message || !messageText) return;
+    message.dataset.state = state;
+    messageText.textContent = text;
+    message.hidden = false;
+  };
+
+  form?.addEventListener('submit', async (event) => {
+    if (!form.action) return;
+
+    // novalidate suppresses the native bubbles; :user-invalid styles the fields.
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      show('error', 'Please correct the highlighted fields.');
+      form.querySelector<HTMLElement>(':invalid')?.focus();
+      return;
+    }
+
+    event.preventDefault();
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    submit?.setAttribute('disabled', '');
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error(String(response.status));
+
+      trackConversion('lead', { source: 'contact-form' });
+      window.location.href = form.querySelector<HTMLInputElement>('[name="_next"]')?.value ?? '/';
+    } catch {
+      submit?.removeAttribute('disabled');
+      show('error', 'Something went wrong sending that. Please call us instead.');
+    }
+  });
+</script>

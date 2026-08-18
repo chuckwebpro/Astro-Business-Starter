@@ -1,0 +1,33 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+export type CardVariant = 'plain' | 'outlined' | 'elevated';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'class'> {
+  as?: 'div' | 'article' | 'li';
+  variant?: CardVariant;
+  padded?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'div',
+  variant = 'outlined',
+  padded = true,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const variants: Record<CardVariant, string> = {
+  plain: 'bg-transparent',
+  outlined: 'bg-surface-base border border-line-base',
+  elevated: 'bg-surface-base shadow-md',
+};
+---
+
+<Tag
+  class:list={['flex flex-col rounded-lg', variants[variant], padded && 'gap-3 p-6', className]}
+  {...rest}
+>
+  <slot />
+</Tag>

@@ -1,0 +1,36 @@
+---
+/**
+ * Inline form status. Hidden until JS sets `data-state`; without JS the form
+ * does a full POST and lands on /thank-you/ instead.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  id?: string;
+}
+
+const { id = 'form-message' } = Astro.props;
+---
+
+<p
+  id={id}
+  class="form-message flex items-start gap-2 rounded-md p-3 text-sm"
+  role="status"
+  aria-live="polite"
+  hidden
+>
+  <Icon name="lucide:info" class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+  <span class="form-message-text"></span>
+</p>
+
+<style>
+  .form-message[data-state='error'] {
+    background-color: color-mix(in oklab, red 8%, transparent);
+    color: var(--color-neutral-900);
+  }
+
+  .form-message[data-state='success'] {
+    background-color: var(--color-brand-50);
+    color: var(--color-ink-brand);
+  }
+</style>

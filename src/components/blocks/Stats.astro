@@ -1,0 +1,55 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import BlockHeader from './BlockHeader.astro';
+import type { BlockProps } from './types';
+
+export interface Stat {
+  value: string;
+  label: string;
+}
+
+interface Props extends BlockProps {
+  items: Stat[];
+}
+
+const {
+  background = 'base',
+  spacing = 'md',
+  align = 'start',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  items,
+} = Astro.props;
+
+const columnClass = items.length === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3';
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <dl class:list={['grid w-full gap-8', columnClass]}>
+      {
+        items.map((stat) => (
+          <div class="flex flex-col gap-1">
+            {/* Value reads first visually; DOM order keeps dt before dd. */}
+            <dt class="text-ink-muted order-2">{stat.label}</dt>
+            <dd class="text-ink-brand order-1 text-4xl font-semibold tracking-tight">
+              {stat.value}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </Container>
+</Section>

@@ -1,0 +1,80 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Card from '../ui/Card.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import type { BlockProps } from './types';
+
+export interface Testimonial {
+  quote: string;
+  name: string;
+  role?: string;
+  /** 1–5; omit to hide the star row. */
+  rating?: number;
+}
+
+interface Props extends BlockProps {
+  items: Testimonial[];
+  columns?: 2 | 3;
+}
+
+const {
+  background = 'muted',
+  spacing = 'md',
+  align = 'start',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  items,
+  columns = 3,
+} = Astro.props;
+
+const columnClass = { 2: 'md:grid-cols-2', 3: 'md:grid-cols-3' }[columns];
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <ul class:list={['grid w-full gap-6', columnClass]}>
+      {
+        items.map((item) => (
+          <Card as="li" variant="elevated">
+            {item.rating && (
+              <div class="flex gap-0.5" role="img" aria-label={`${item.rating} out of 5 stars`}>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Icon
+                    name="lucide:star"
+                    class:list={[
+                      'size-4',
+                      index < item.rating! ? 'text-accent-500' : 'text-neutral-300',
+                    ]}
+                    aria-hidden="true"
+                  />
+                ))}
+              </div>
+            )}
+
+            <blockquote class="text-ink-base flex-1">
+              <p>&ldquo;{item.quote}&rdquo;</p>
+            </blockquote>
+
+            <footer class="text-sm">
+              <p class="font-medium">{item.name}</p>
+              {item.role && <p class="text-ink-muted">{item.role}</p>}
+            </footer>
+          </Card>
+        ))
+      }
+    </ul>
+  </Container>
+</Section>

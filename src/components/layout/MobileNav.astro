@@ -1,0 +1,208 @@
+---
+/**
+ * Mobile navigation (below md). Standard across projects — it inherits the
+ * client's tokens and is not designed per site.
+ *
+ * The drawer marks the rest of the page `inert`, locks body scroll, and
+ * restores focus to the hamburger on close. Nested links are accordions from
+ * the same tree, so nothing here diverges from the desktop menu.
+ */
+import Container from '../ui/Container.astro';
+import Button from '../ui/Button.astro';
+import { navigation } from '../../config/navigation';
+import { site } from '../../config/site';
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const isCurrent = (href: string) =>
+  href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+
+const linkClass =
+  'flex min-h-12 items-center gap-3 rounded-md px-2 text-base no-underline text-ink-base aria-[current=page]:text-ink-brand aria-[current=page]:font-medium';
+---
+
+<button
+  type="button"
+  id="nav-toggle"
+  aria-expanded="false"
+  aria-controls="mobile-nav"
+  class="inline-flex size-11 items-center justify-center rounded-md hover:bg-neutral-100 md:hidden"
+>
+  <span class="sr-only">Menu</span>
+  <Icon name="lucide:menu" class="size-6" aria-hidden="true" />
+</button>
+
+<div
+  id="mobile-nav"
+  hidden
+  class="bg-surface-base fixed inset-0 top-(--header-h) z-40 overflow-y-auto overscroll-contain md:hidden"
+>
+  <Container
+    as="nav"
+    gap="none"
+    aria-label="Mobile"
+    class="py-4 pb-[max(2rem,env(safe-area-inset-bottom))]"
+  >
+    <ul class="flex w-full flex-col">
+      {
+        navigation.primary.map((item, index) => {
+          const sublinks =
+            item.panel?.kind === 'mega'
+              ? item.panel.columns.flatMap((column) => column.links)
+              : (item.panel?.links ?? []);
+
+          if (sublinks.length === 0) {
+            return (
+              <li class="border-line-base border-b">
+                <a
+                  href={item.href ?? '#'}
+                  aria-current={isCurrent(item.href ?? '') ? 'page' : undefined}
+                  class={linkClass}
+                >
+                  {item.label}
+                </a>
+              </li>
+            );
+          }
+
+          const panelId = `mobile-panel-${index}`;
+
+          return (
+            <li class="border-line-base border-b">
+              <div class="flex items-center">
+                {item.href ? (
+                  <a
+                    href={item.href}
+                    aria-current={isCurrent(item.href) ? 'page' : undefined}
+                    class={`${linkClass} flex-1`}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <span class={`${linkClass} flex-1`}>{item.label}</span>
+                )}
+
+                <button
+                  type="button"
+                  class="mobile-accordion inline-flex size-12 shrink-0 items-center justify-center rounded-md hover:bg-neutral-100"
+                  aria-expanded="false"
+                  aria-controls={panelId}
+                >
+                  <span class="sr-only">Show {item.label} links</span>
+                  <Icon
+                    name="lucide:chevron-down"
+                    class="size-5 transition-transform"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+
+              <ul
+                id={panelId}
+                hidden
+                class="border-line-base mb-2 ml-2 flex flex-col border-l pl-3"
+              >
+                {sublinks.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      aria-current={isCurrent(link.href) ? 'page' : undefined}
+                      class={linkClass}
+                    >
+                      {link.icon && (
+                        <Icon
+                          name={link.icon}
+                          class="text-brand-600 size-5 shrink-0"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <div class="mt-6 flex flex-col gap-3">
+      {navigation.cta && <Button href={navigation.cta.href}>{navigation.cta.label}</Button>}
+      <Button href={`tel:${site.business.phoneHref}`} variant="secondary">
+        <Icon name="lucide:phone" class="size-4" aria-hidden="true" />
+        {site.business.phone}
+      </Button>
+    </div>
+  </Container>
+</div>
+
+<style>
+  /* Overwritten from the real header height when the drawer opens. */
+  #mobile-nav {
+    --header-h: 4rem;
+  }
+
+  .mobile-accordion[aria-expanded='true'] :global(svg) {
+    transform: rotate(180deg);
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('#nav-toggle');
+  const drawer = document.querySelector<HTMLElement>('#mobile-nav');
+  const header = document.querySelector<HTMLElement>('header[data-sticky]');
+
+  if (toggle && drawer) {
+    // Everything except the header and the drawer itself gets inerted.
+    const outside = Array.from(document.body.children).filter(
+      (el) => el !== header && el !== drawer,
+    ) as HTMLElement[];
+
+    const setDrawer = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      drawer.hidden = !open;
+      document.body.style.overflow = open ? 'hidden' : '';
+
+      for (const el of outside) {
+        if (open) el.setAttribute('inert', '');
+        else el.removeAttribute('inert');
+      }
+
+      if (open) {
+        drawer.style.setProperty('--header-h', `${header?.offsetHeight ?? 0}px`);
+        drawer.querySelector<HTMLAnchorElement>('a')?.focus();
+      } else {
+        toggle.focus();
+      }
+    };
+
+    toggle.addEventListener('click', () =>
+      setDrawer(toggle.getAttribute('aria-expanded') !== 'true'),
+    );
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true')
+        setDrawer(false);
+    });
+
+    // Crossing into desktop territory must not leave the page inert.
+    window.matchMedia('(min-width: 768px)').addEventListener('change', (event) => {
+      if (event.matches && toggle.getAttribute('aria-expanded') === 'true') setDrawer(false);
+    });
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.mobile-accordion')) {
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') === 'true';
+      const panel = document.getElementById(button.getAttribute('aria-controls') ?? '');
+      button.setAttribute('aria-expanded', String(!open));
+      if (panel) panel.hidden = open;
+    });
+  }
+</script>

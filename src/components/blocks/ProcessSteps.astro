@@ -1,0 +1,64 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Heading from '../ui/Heading.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import type { BlockProps } from './types';
+
+export interface ProcessStep {
+  title: string;
+  body: string;
+  icon?: string;
+}
+
+interface Props extends BlockProps {
+  items: ProcessStep[];
+  /** Numbers the steps rather than showing icons. */
+  numbered?: boolean;
+}
+
+const {
+  background = 'base',
+  spacing = 'md',
+  align = 'start',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  items,
+  numbered = true,
+} = Astro.props;
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <ol class="grid w-full gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        items.map((step, index) => (
+          <li class="flex flex-col gap-3">
+            <span
+              class="bg-brand-600 text-neutral-0 flex size-11 items-center justify-center rounded-full font-semibold"
+              aria-hidden="true"
+            >
+              {numbered || !step.icon ? index + 1 : <Icon name={step.icon} class="size-5" />}
+            </span>
+            <Heading level={titleLevel === 2 ? 3 : 4} size="md">
+              {step.title}
+            </Heading>
+            <p class="text-ink-muted">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </Container>
+</Section>

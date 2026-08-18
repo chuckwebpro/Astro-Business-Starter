@@ -1,0 +1,127 @@
+---
+/**
+ * Demo home page, assembled entirely from blocks so it doubles as a working
+ * example and a build smoke test. `npm run setup` clears this per project.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/blocks/Hero.astro';
+import ServicesGrid from '../components/blocks/ServicesGrid.astro';
+import ProcessSteps from '../components/blocks/ProcessSteps.astro';
+import Stats from '../components/blocks/Stats.astro';
+import Testimonials from '../components/blocks/Testimonials.astro';
+import FAQ from '../components/blocks/FAQ.astro';
+import CTABanner from '../components/blocks/CTABanner.astro';
+import { site } from '../config/site';
+
+const faqs = [
+  {
+    question: 'Do you offer emergency callouts?',
+    answer: 'Yes — we cover emergencies around the clock, including weekends and holidays.',
+  },
+  {
+    question: 'Are you licensed and insured?',
+    answer: 'Fully licensed and insured. We can supply certificates on request before work starts.',
+  },
+  {
+    question: 'How quickly can you get here?',
+    answer: 'Typically within two hours across the metro area, and same-day everywhere else.',
+  },
+];
+---
+
+<BaseLayout faqs={faqs}>
+  <Hero
+    eyebrow={`${site.business.address.locality}, ${site.business.address.region}`}
+    title={site.tagline}
+    body={site.description}
+    bullets={[
+      'Licensed and insured',
+      'Upfront pricing, no surprises',
+      'Work guaranteed for 12 months',
+    ]}
+    actions={[
+      { label: 'Request a quote', href: '/contact/' },
+      { label: site.business.phone, href: `tel:${site.business.phoneHref}`, variant: 'secondary' },
+    ]}
+  />
+
+  <ServicesGrid
+    eyebrow="Services"
+    title="What we do"
+    body="Straightforward work across residential and commercial properties."
+    items={[
+      {
+        icon: 'lucide:wrench',
+        title: 'Repairs & Maintenance',
+        body: 'Same-week appointments for the problems that cannot wait.',
+        href: '/services/repairs/',
+      },
+      {
+        icon: 'lucide:hammer',
+        title: 'Installations',
+        body: 'New systems specified, fitted, and tested to code.',
+        href: '/services/installations/',
+      },
+      {
+        icon: 'lucide:clipboard-check',
+        title: 'Service Contracts',
+        body: 'Scheduled upkeep with priority response when something goes wrong.',
+        href: '/services/contracts/',
+      },
+    ]}
+  />
+
+  <ProcessSteps
+    background="muted"
+    eyebrow="Process"
+    title="How it works"
+    items={[
+      { title: 'Get in touch', body: 'Call or send a message describing the problem.' },
+      { title: 'We assess', body: 'A quick look in person, or from photos where that works.' },
+      { title: 'Fixed quote', body: 'Agreed before any work begins. No surprises later.' },
+      { title: 'Work completed', body: 'Guaranteed for twelve months from the day we finish.' },
+    ]}
+  />
+
+  <Stats
+    title="By the numbers"
+    items={[
+      { value: '18 yrs', label: 'Serving the region' },
+      { value: '4.9/5', label: 'Average review score' },
+      { value: '2 hrs', label: 'Typical callout response' },
+    ]}
+  />
+
+  <Testimonials
+    eyebrow="Reviews"
+    title="What clients say"
+    items={[
+      {
+        quote: 'Turned up when they said they would and fixed it on the first visit.',
+        name: 'Dana R.',
+        role: 'Homeowner',
+        rating: 5,
+      },
+      {
+        quote: 'Clear pricing, no upselling, and they cleaned up after themselves.',
+        name: 'Mark T.',
+        role: 'Office manager',
+        rating: 5,
+      },
+      {
+        quote: 'They handle all four of our sites now. Easiest contractor we work with.',
+        name: 'Priya S.',
+        role: 'Facilities lead',
+        rating: 5,
+      },
+    ]}
+  />
+
+  <FAQ eyebrow="FAQ" title="Common questions" items={faqs} schema={false} />
+
+  <CTABanner
+    title="Ready to get started?"
+    body="Tell us what you need and we will come back to you the same day."
+    actions={[{ label: 'Request a quote', href: '/contact/' }]}
+  />
+</BaseLayout>

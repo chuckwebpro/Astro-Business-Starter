@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+@import './theme.css';
+
+/* Blocks stack as full-width bands. Two adjacent bands sharing a background
+   would otherwise contribute two pads to one visual gap. */
+@layer base {
+  [data-bg='base'] + [data-bg='base'],
+  [data-bg='muted'] + [data-bg='muted'],
+  [data-bg='inverse'] + [data-bg='inverse'],
+  [data-bg='brand'] + [data-bg='brand'] {
+    padding-block-start: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface-base);
+    color: var(--color-ink-base);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

@@ -1,0 +1,139 @@
+---
+/**
+ * Owns its outer element rather than wrapping in Section: sticky behaviour
+ * needs its own positioning and stacking context. Container is used inside.
+ *
+ * The nav slots are filled by MegaMenu (md and up) and MobileNav (below md),
+ * both reading src/config/navigation.ts — one tree, two renderings.
+ */
+import Container from '../ui/Container.astro';
+import Button from '../ui/Button.astro';
+import MegaMenu from './MegaMenu.astro';
+import MobileNav from './MobileNav.astro';
+import { navigation } from '../../config/navigation';
+import { site } from '../../config/site';
+import { Icon } from 'astro-icon/components';
+
+export type HeaderSticky = 'static' | 'sticky' | 'shrink' | 'hide-on-scroll';
+
+interface Props {
+  sticky?: HeaderSticky;
+}
+
+const { sticky = 'sticky' } = Astro.props;
+
+const currentPath = Astro.url.pathname;
+const positioned = sticky !== 'static';
+---
+
+<header
+  data-sticky={sticky}
+  class:list={[
+    'group/header border-line-base bg-surface-base z-50 w-full border-b',
+    // The mega panel is absolutely positioned against the header, so the header
+    // must be a positioned ancestor even when it isn't sticky.
+    positioned ? 'sticky top-0' : 'relative',
+  ]}
+>
+  <Container
+    as="div"
+    layout="bar"
+    gap="none"
+    class="justify-between gap-4 py-4 group-data-[scrolled=true]/header:py-2"
+  >
+    <a href="/" class="text-ink-base flex items-center gap-2 font-semibold no-underline">
+      <Icon name="lucide:hexagon" class="text-brand-600 size-7" aria-hidden="true" />
+      <span>{site.name}</span>
+    </a>
+
+    <MegaMenu currentPath={currentPath} />
+
+    <div class="flex items-center gap-2">
+      <a
+        href={`tel:${site.business.phoneHref}`}
+        class="text-ink-base hidden min-h-11 items-center gap-2 px-2 font-medium no-underline lg:inline-flex"
+      >
+        <Icon name="lucide:phone" class="size-4" aria-hidden="true" />
+        {site.business.phone}
+      </a>
+
+      {
+        navigation.cta && (
+          <Button href={navigation.cta.href} size="sm" class="max-md:hidden">
+            {navigation.cta.label}
+          </Button>
+        )
+      }
+
+      <MobileNav currentPath={currentPath} />
+    </div>
+  </Container>
+</header>
+
+<style>
+  header {
+    transition:
+      transform 200ms ease,
+      padding 150ms ease;
+  }
+
+  header[data-hidden='true'] {
+    transform: translateY(-100%);
+  }
+
+  header[data-scrolled='true'] {
+    box-shadow: var(--shadow-sm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    header {
+      transition: none;
+    }
+
+    header[data-hidden='true'] {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('header[data-sticky]');
+
+  if (header) {
+    const mode = header.dataset.sticky;
+
+    if (mode === 'shrink' || mode === 'hide-on-scroll') {
+      let lastY = window.scrollY;
+      let ticking = false;
+
+      const update = () => {
+        const y = window.scrollY;
+        header.dataset.scrolled = String(y > 8);
+
+        if (mode === 'hide-on-scroll') {
+          // Never retract while the drawer or a mega panel is open.
+          const navOpen =
+            document.querySelector('#nav-toggle')?.getAttribute('aria-expanded') === 'true' ||
+            document.querySelector('.mega-item[data-open="true"]') !== null;
+          header.dataset.hidden = String(!navOpen && y > lastY && y > 120);
+        }
+
+        lastY = y;
+        ticking = false;
+      };
+
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+          }
+        },
+        { passive: true },
+      );
+
+      update();
+    }
+  }
+</script>

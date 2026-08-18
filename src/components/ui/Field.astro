@@ -1,0 +1,109 @@
+---
+/**
+ * Wraps a native input with its label, help text, and error slot. Validation is
+ * the browser's own constraint API — `required`, `type`, `pattern` — so no
+ * validation library ships.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+export type FieldType = 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'class' | 'type' | 'name'> {
+  name: string;
+  label: string;
+  type?: FieldType;
+  help?: string;
+  /** Message shown when the browser reports the value invalid. */
+  error?: string;
+  options?: { label: string; value: string }[];
+  rows?: number;
+  class?: string;
+}
+
+const {
+  name,
+  label,
+  type = 'text',
+  help,
+  error = 'Please check this field.',
+  options = [],
+  rows = 5,
+  required,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const helpId = help ? `${name}-help` : undefined;
+const errorId = `${name}-error`;
+
+const controlClass =
+  'w-full min-h-12 rounded-md border border-line-base bg-surface-base px-3 py-2 text-base ' +
+  'placeholder:text-neutral-400 focus:border-brand-500 ' +
+  'user-invalid:border-red-600 user-invalid:text-red-900';
+---
+
+<div class:list={['field flex flex-col gap-1.5', className]}>
+  <label for={name} class="font-medium">
+    {label}
+    {!required && <span class="text-ink-muted font-normal"> (optional)</span>}
+  </label>
+
+  {
+    help && (
+      <p id={helpId} class="text-ink-muted text-sm">
+        {help}
+      </p>
+    )
+  }
+
+  {
+    type === 'textarea' ? (
+      <textarea
+        id={name}
+        name={name}
+        rows={rows}
+        required={required}
+        aria-describedby={helpId}
+        class={controlClass}
+        {...rest}
+      />
+    ) : type === 'select' ? (
+      <select
+        id={name}
+        name={name}
+        required={required}
+        aria-describedby={helpId}
+        class={controlClass}
+        {...rest}
+      >
+        {options.map((option) => (
+          <option value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    ) : (
+      <input
+        id={name}
+        name={name}
+        type={type}
+        required={required}
+        aria-describedby={helpId}
+        class={controlClass}
+        {...rest}
+      />
+    )
+  }
+
+  <p id={errorId} class="field-error text-sm text-red-700">{error}</p>
+</div>
+
+<style>
+  /* :user-invalid only fires after interaction, so errors never appear on an
+     untouched form the way :invalid would. */
+  .field-error {
+    display: none;
+  }
+
+  .field:has(:user-invalid) .field-error {
+    display: block;
+  }
+</style>

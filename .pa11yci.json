@@ -1,0 +1,17 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "timeout": 30000,
+    "concurrency": 1,
+    "reporters": ["cli"],
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox", "--disable-dev-shm-usage"]
+    },
+    "viewport": { "width": 375, "height": 812, "isMobile": true }
+  },
+  "urls": [
+    "http://localhost:4321/",
+    "http://localhost:4321/thank-you/",
+    "http://localhost:4321/404.html"
+  ]
+}

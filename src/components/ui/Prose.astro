@@ -1,0 +1,121 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'class'> {
+  class?: string;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<div class:list={['prose-root max-w-reading', className]} {...rest}>
+  <slot />
+</div>
+
+<style>
+  /* Styles authored content (Markdown/MDX output) from tokens directly rather
+     than pulling in a typography plugin with its own parallel theme. */
+  .prose-root :global(> * + *) {
+    margin-block-start: 1.1em;
+  }
+
+  .prose-root :global(h2),
+  .prose-root :global(h3),
+  .prose-root :global(h4) {
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-snug);
+    text-wrap: balance;
+    margin-block-start: 1.8em;
+  }
+
+  .prose-root :global(h2) {
+    font-size: var(--text-2xl);
+  }
+
+  .prose-root :global(h3) {
+    font-size: var(--text-xl);
+  }
+
+  .prose-root :global(h4) {
+    font-size: var(--text-lg);
+  }
+
+  .prose-root :global(a) {
+    color: var(--color-ink-brand);
+    text-underline-offset: 0.2em;
+  }
+
+  .prose-root :global(strong) {
+    font-weight: 600;
+  }
+
+  .prose-root :global(ul),
+  .prose-root :global(ol) {
+    padding-inline-start: 1.4em;
+  }
+
+  .prose-root :global(ul) {
+    list-style: disc;
+  }
+
+  .prose-root :global(ol) {
+    list-style: decimal;
+  }
+
+  .prose-root :global(li + li) {
+    margin-block-start: 0.4em;
+  }
+
+  .prose-root :global(blockquote) {
+    border-inline-start: 3px solid var(--color-brand-500);
+    padding-inline-start: 1em;
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .prose-root :global(code) {
+    background-color: var(--color-neutral-100);
+    border-radius: var(--radius-sm);
+    padding: 0.15em 0.35em;
+    font-size: 0.9em;
+  }
+
+  .prose-root :global(pre) {
+    background-color: var(--color-neutral-950);
+    color: var(--color-neutral-100);
+    border-radius: var(--radius-md);
+    padding: 1em 1.2em;
+    overflow-x: auto;
+  }
+
+  .prose-root :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+
+  .prose-root :global(img) {
+    border-radius: var(--radius-md);
+  }
+
+  .prose-root :global(hr) {
+    border: 0;
+    border-block-start: 1px solid var(--color-line-base);
+    margin-block: 2.5em;
+  }
+
+  /* Wide tables scroll rather than shrink, per RESPONSIVE-RULES. */
+  .prose-root :global(table) {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .prose-root :global(th),
+  .prose-root :global(td) {
+    border: 1px solid var(--color-line-base);
+    padding: 0.5em 0.75em;
+    text-align: start;
+  }
+</style>

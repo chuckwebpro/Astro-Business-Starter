@@ -1,0 +1,97 @@
+---
+/**
+ * Paginated index. Copy to `src/pages/__collection__/[...page].astro`.
+ *
+ * Imports are written for that destination, so they will not resolve while the
+ * file sits in _templates/ — which is why tsconfig excludes this folder. Copy it
+ * to a different depth and you will need to adjust the `../../` prefixes.
+ */
+import type { GetStaticPaths, Page } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/ui/Section.astro';
+import Container from '../../components/ui/Container.astro';
+import Heading from '../../components/ui/Heading.astro';
+import Card from '../../components/ui/Card.astro';
+import { getPublished, type Entry } from '../../lib/__collection__';
+
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  const entries = await getPublished();
+  return paginate(entries, { pageSize: 9 });
+};
+
+interface Props {
+  page: Page<Entry>;
+}
+
+const { page } = Astro.props;
+
+const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' });
+---
+
+<BaseLayout
+  title="__Collection__"
+  description="Latest updates, guides, and announcements."
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: '__Collection__', href: '/__collection__/' },
+  ]}
+>
+  <Section background="muted" spacing="md">
+    <Container gap="sm">
+      <Heading level={1}>__Collection__</Heading>
+      <p class="text-ink-muted max-w-reading text-lg">Latest updates, guides, and announcements.</p>
+    </Container>
+  </Section>
+
+  <Section background="base" spacing="md">
+    <Container gap="lg">
+      <ul class="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          page.data.map((entry) => (
+            <Card as="li" variant="outlined">
+              <p class="text-ink-muted text-sm">
+                <time datetime={entry.data.publishDate.toISOString()}>
+                  {dateFormat.format(entry.data.publishDate)}
+                </time>
+                {entry.data.category && <span> · {entry.data.category}</span>}
+              </p>
+              <Heading level={2} size="md">
+                <a
+                  href={`/__collection__/${entry.id}/`}
+                  class="text-ink-base no-underline hover:underline"
+                >
+                  {entry.data.title}
+                </a>
+              </Heading>
+              <p class="text-ink-muted">{entry.data.description}</p>
+            </Card>
+          ))
+        }
+      </ul>
+
+      {
+        (page.url.prev || page.url.next) && (
+          <nav class="flex w-full items-center justify-between" aria-label="Pagination">
+            {page.url.prev ? (
+              <a href={page.url.prev} class="text-ink-brand inline-flex min-h-11 items-center">
+                ← Newer
+              </a>
+            ) : (
+              <span />
+            )}
+            <p class="text-ink-muted text-sm">
+              Page {page.currentPage} of {page.lastPage}
+            </p>
+            {page.url.next ? (
+              <a href={page.url.next} class="text-ink-brand inline-flex min-h-11 items-center">
+                Older →
+              </a>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )
+      }
+    </Container>
+  </Section>
+</BaseLayout>

@@ -1,0 +1,47 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'inverse';
+export type ButtonSize = 'sm' | 'md' | 'lg';
+
+type Props = {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  href?: string;
+  class?: string;
+} & Omit<HTMLAttributes<'a'>, 'class'> &
+  Omit<HTMLAttributes<'button'>, 'class'>;
+
+const { variant = 'primary', size = 'md', href, class: className, ...rest } = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+
+const variants: Record<ButtonVariant, string> = {
+  primary: 'bg-brand-600 text-neutral-0 hover:bg-brand-700 border-transparent',
+  secondary: 'bg-transparent text-ink-brand border-brand-600 hover:bg-brand-50',
+  ghost: 'bg-transparent text-ink-base border-transparent hover:bg-neutral-100',
+  inverse: 'bg-neutral-0 text-ink-brand border-transparent hover:bg-brand-50',
+};
+
+// min-h keeps every size above the 44px touch target on small screens.
+const sizes: Record<ButtonSize, string> = {
+  sm: 'min-h-11 px-4 text-sm',
+  md: 'min-h-12 px-6 text-base',
+  lg: 'min-h-14 px-8 text-lg',
+};
+---
+
+<Tag
+  href={href}
+  class:list={[
+    'inline-flex items-center justify-center gap-2 rounded-md border font-medium',
+    'no-underline transition-colors duration-150',
+    'disabled:pointer-events-none disabled:opacity-50',
+    variants[variant],
+    sizes[size],
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+</Tag>

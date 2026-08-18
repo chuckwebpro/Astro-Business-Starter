@@ -1,0 +1,340 @@
+---
+/**
+ * Rest route rather than a plain page: a static `.astro` page always builds,
+ * and there is no per-page opt-out. Returning an empty getStaticPaths is the
+ * only clean way to keep this out of a normal production build.
+ *
+ * Always available in `dev`; in a build only when STYLEGUIDE=1.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import Container from '../components/ui/Container.astro';
+import Heading from '../components/ui/Heading.astro';
+import Button from '../components/ui/Button.astro';
+import Card from '../components/ui/Card.astro';
+import Prose from '../components/ui/Prose.astro';
+
+import ServicesGrid from '../components/blocks/ServicesGrid.astro';
+import Hero from '../components/blocks/Hero.astro';
+import FeatureSplit from '../components/blocks/FeatureSplit.astro';
+import Testimonials from '../components/blocks/Testimonials.astro';
+import FAQ from '../components/blocks/FAQ.astro';
+import Team from '../components/blocks/Team.astro';
+import Pricing from '../components/blocks/Pricing.astro';
+import Stats from '../components/blocks/Stats.astro';
+import ProcessSteps from '../components/blocks/ProcessSteps.astro';
+import LogoCloud from '../components/blocks/LogoCloud.astro';
+import CTABanner from '../components/blocks/CTABanner.astro';
+import ContactBlock from '../components/blocks/ContactBlock.astro';
+import MapEmbed from '../components/blocks/MapEmbed.astro';
+
+import type { SectionBackground, SectionSpacing } from '../components/ui/Section.astro';
+
+export function getStaticPaths() {
+  const enabled = import.meta.env.DEV || process.env.STYLEGUIDE === '1';
+  return enabled ? [{ params: { styleguide: 'styleguide' } }] : [];
+}
+
+const backgrounds: SectionBackground[] = ['base', 'muted', 'inverse', 'brand'];
+const spacings: SectionSpacing[] = ['none', 'sm', 'md', 'lg'];
+const buttonVariants = ['primary', 'secondary', 'ghost'] as const;
+const buttonSizes = ['sm', 'md', 'lg'] as const;
+
+const services = [
+  { icon: 'lucide:wrench', title: 'Repairs', body: 'Same-week appointments.' },
+  { icon: 'lucide:hammer', title: 'Installations', body: 'Fitted and tested to code.' },
+  { icon: 'lucide:clipboard-check', title: 'Contracts', body: 'Scheduled upkeep.' },
+];
+
+const faqs = [
+  { question: 'Do you offer emergency callouts?', answer: 'Yes, around the clock, every day.' },
+  { question: 'Are you licensed and insured?', answer: 'Fully licensed and insured in the state.' },
+  { question: 'How fast can you get here?', answer: 'Typically within two hours in the metro.' },
+];
+---
+
+<BaseLayout title="Style guide" noindex sticky="static">
+  <Section background="base" spacing="sm">
+    <Container gap="sm">
+      <Heading level={1} size="xl">Style guide</Heading>
+      <p class="text-ink-muted max-w-reading">
+        Every primitive and block in all variants. Not part of a normal production build.
+      </p>
+    </Container>
+  </Section>
+
+  <Section background="muted" spacing="sm">
+    <Container gap="md">
+      <Heading level={2} size="lg">Colour tokens</Heading>
+      <div class="grid w-full grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+        {
+          ['brand', 'neutral'].flatMap((ramp) =>
+            [100, 300, 500, 700, 900].map((step) => (
+              <div class="flex flex-col gap-1">
+                <div
+                  class="border-line-base h-12 w-full rounded-md border"
+                  style={`background: var(--color-${ramp}-${step})`}
+                />
+                <code class="text-xs">{`${ramp}-${step}`}</code>
+              </div>
+            )),
+          )
+        }
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="base" spacing="sm">
+    <Container gap="md">
+      <Heading level={2} size="lg">Type scale</Heading>
+      <div class="flex w-full flex-col gap-2">
+        <Heading level={3} size="display">Display heading</Heading>
+        <Heading level={3} size="xl">Extra large heading</Heading>
+        <Heading level={3} size="lg">Large heading</Heading>
+        <Heading level={3} size="md">Medium heading</Heading>
+        <Heading level={3} size="sm">Small heading</Heading>
+        <p>Body copy at the base size, which is what most of the page is set in.</p>
+        <p class="text-ink-muted text-sm">Small muted text for captions and metadata.</p>
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="base" spacing="sm">
+    <Container gap="md">
+      <Heading level={2} size="lg">Buttons</Heading>
+      {
+        buttonSizes.map((size) => (
+          <div class="flex flex-wrap items-center gap-3">
+            {buttonVariants.map((variant) => (
+              <Button variant={variant} size={size}>
+                {variant} / {size}
+              </Button>
+            ))}
+          </div>
+        ))
+      }
+      <div class="bg-surface-inverse flex flex-wrap gap-3 rounded-lg p-4">
+        <Button variant="inverse">inverse (on dark)</Button>
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="base" spacing="sm">
+    <Container gap="md">
+      <Heading level={2} size="lg">Cards</Heading>
+      <div class="grid w-full gap-4 sm:grid-cols-3">
+        <Card variant="plain"><p>plain</p></Card>
+        <Card variant="outlined"><p>outlined</p></Card>
+        <Card variant="elevated"><p>elevated</p></Card>
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="base" spacing="sm">
+    <Container gap="md">
+      <Heading level={2} size="lg">Prose</Heading>
+      <Prose>
+        <h2>Rendered Markdown</h2>
+        <p>
+          Body copy with a <a href="#">link</a>, some <strong>bold text</strong>, and
+          <code>inline code</code>.
+        </p>
+        <ul>
+          <li>First item</li>
+          <li>Second item</li>
+        </ul>
+        <blockquote>A pull quote for emphasis.</blockquote>
+      </Prose>
+    </Container>
+  </Section>
+
+  <Section background="base" spacing="sm">
+    <Container gap="sm">
+      <Heading level={2} size="lg">Section backgrounds &amp; rhythm seams</Heading>
+      <p class="text-ink-muted">
+        Two bands sharing a background collapse the seam; a colour change keeps the full pad.
+      </p>
+    </Container>
+  </Section>
+
+  {
+    backgrounds.map((background) => (
+      <>
+        <Section background={background} spacing="sm">
+          <Container>
+            <p>
+              <code>{background}</code> — first band
+            </p>
+          </Container>
+        </Section>
+        <Section background={background} spacing="sm">
+          <Container>
+            <p>
+              <code>{background}</code> — second band, seam collapsed
+            </p>
+          </Container>
+        </Section>
+      </>
+    ))
+  }
+
+  {
+    spacings.map((spacing) => (
+      <Section background="muted" spacing={spacing}>
+        <Container>
+          <p>
+            spacing <code>{spacing}</code>
+          </p>
+        </Container>
+      </Section>
+    ))
+  }
+
+  <Section background="base" spacing="sm">
+    <Container><Heading level={2} size="lg">Blocks</Heading></Container>
+  </Section>
+
+  <Hero
+    eyebrow="Hero"
+    title="Hero without an image"
+    body="Stacks to a single column; with an image it becomes a two-up split."
+    bullets={['Bullet one', 'Bullet two']}
+    actions={[
+      { label: 'Primary', href: '#' },
+      { label: 'Secondary', href: '#', variant: 'secondary' },
+    ]}
+  />
+
+  <FeatureSplit
+    eyebrow="FeatureSplit"
+    title="Text beside media"
+    body="Image renders as a placeholder here. Small screens always stack image-first."
+    bullets={['Reversible with the reverse prop', 'Media lazy-loads']}
+    actions={[{ label: 'Learn more', href: '#', variant: 'secondary' }]}
+  />
+
+  <ServicesGrid
+    eyebrow="ServicesGrid"
+    title="What we do"
+    body="Three columns on desktop, one below md."
+    items={services}
+  />
+
+  <Stats
+    eyebrow="Stats"
+    title="By the numbers"
+    items={[
+      { value: '18 yrs', label: 'In business' },
+      { value: '4.9/5', label: 'Average rating' },
+      { value: '2 hrs', label: 'Response time' },
+    ]}
+  />
+
+  <ProcessSteps
+    eyebrow="ProcessSteps"
+    title="How it works"
+    background="muted"
+    items={[
+      { title: 'Get in touch', body: 'Tell us what is going on.' },
+      { title: 'We assess', body: 'A quick look, in person or by photo.' },
+      { title: 'Fixed quote', body: 'No surprises once work starts.' },
+      { title: 'Work done', body: 'Guaranteed for twelve months.' },
+    ]}
+  />
+
+  <Testimonials
+    eyebrow="Testimonials"
+    title="What clients say"
+    items={[
+      {
+        quote: 'Turned up on time and fixed it first visit.',
+        name: 'Dana R.',
+        role: 'Homeowner',
+        rating: 5,
+      },
+      {
+        quote: 'Clear pricing and no upselling.',
+        name: 'Mark T.',
+        role: 'Office manager',
+        rating: 5,
+      },
+      {
+        quote: 'They handle all four of our sites now.',
+        name: 'Priya S.',
+        role: 'Facilities lead',
+        rating: 4,
+      },
+    ]}
+  />
+
+  <Pricing
+    eyebrow="Pricing"
+    title="Straightforward rates"
+    items={[
+      {
+        name: 'Callout',
+        price: '$129',
+        cadence: 'per visit',
+        features: ['First hour included', 'Parts at cost', 'Weekday hours'],
+        action: { label: 'Book a visit', href: '/contact/' },
+      },
+      {
+        name: 'Service plan',
+        price: '$59',
+        cadence: 'per month',
+        featured: true,
+        features: ['Two visits a year', 'Priority scheduling', '10% off parts', 'No callout fee'],
+        action: { label: 'Start a plan', href: '/contact/' },
+      },
+      {
+        name: 'Commercial',
+        price: 'Custom',
+        features: ['Multi-site cover', 'SLA response times', 'Consolidated billing'],
+        action: { label: 'Talk to us', href: '/contact/' },
+      },
+    ]}
+  />
+
+  <Team
+    eyebrow="Team"
+    title="Who you will meet"
+    items={[
+      { name: 'Alex Moore', role: 'Founder' },
+      { name: 'Sam Patel', role: 'Lead technician' },
+      { name: 'Jo Rivera', role: 'Scheduler' },
+      { name: 'Chris Lane', role: 'Apprentice' },
+    ]}
+  />
+
+  <FAQ eyebrow="FAQ" title="Common questions" items={faqs} schema={false} />
+
+  <LogoCloud
+    label="LogoCloud — accredited by"
+    items={[
+      { name: 'Trade Body' },
+      { name: 'Certified Co' },
+      { name: 'Safety First' },
+      { name: 'Guild' },
+    ]}
+  />
+
+  <MapEmbed eyebrow="MapEmbed" title="Find us" />
+
+  <ContactBlock
+    background="muted"
+    eyebrow="ContactBlock"
+    title="Send us a message"
+    body="Native constraint validation; errors only appear after interaction."
+    services={['Repairs', 'Installation', 'Service contract']}
+  />
+
+  <CTABanner
+    eyebrow="CTABanner"
+    title="Ready to get started?"
+    body="Sits on a brand band by default, so buttons switch to the inverse variant."
+    actions={[
+      { label: 'Request a quote', href: '/contact/' },
+      { label: 'Call us', href: '/contact/', variant: 'ghost' },
+    ]}
+  />
+</BaseLayout>

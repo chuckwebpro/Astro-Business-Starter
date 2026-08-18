@@ -1,0 +1,117 @@
+---
+/**
+ * Entry detail. Copy to `src/pages/__collection__/[slug].astro`.
+ *
+ * Imports are written for that destination, so they will not resolve while the
+ * file sits in _templates/ — which is why tsconfig excludes this folder. Copy it
+ * to a different depth and you will need to adjust the `../../` prefixes.
+ */
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/ui/Section.astro';
+import Container from '../../components/ui/Container.astro';
+import Heading from '../../components/ui/Heading.astro';
+import Prose from '../../components/ui/Prose.astro';
+import Card from '../../components/ui/Card.astro';
+import { getPublished, readingTime, related, type Entry } from '../../lib/__collection__';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const entries = await getPublished();
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry, all: entries },
+  }));
+};
+
+interface Props {
+  entry: Entry;
+  all: Entry[];
+}
+
+const { entry, all } = Astro.props;
+const { Content } = await render(entry);
+
+const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'long' });
+const suggestions = related(all, entry);
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  type="article"
+  image={entry.data.heroImage?.src}
+  publishedTime={entry.data.publishDate.toISOString()}
+  modifiedTime={entry.data.updatedDate?.toISOString()}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: '__Collection__', href: '/__collection__/' },
+    { name: entry.data.title, href: `/__collection__/${entry.id}/` },
+  ]}
+>
+  <Section background="muted" spacing="md">
+    <Container width="narrow" gap="sm">
+      <p class="text-ink-muted text-sm">
+        <time datetime={entry.data.publishDate.toISOString()}>
+          {dateFormat.format(entry.data.publishDate)}
+        </time>
+        <span> · {readingTime(entry.body)}</span>
+        {entry.data.author && <span> · {entry.data.author}</span>}
+      </p>
+      <Heading level={1}>{entry.data.title}</Heading>
+      <p class="text-ink-muted text-lg">{entry.data.description}</p>
+    </Container>
+  </Section>
+
+  {
+    entry.data.heroImage && (
+      <Section background="base" spacing="none">
+        <Container width="narrow" class="pt-8">
+          <Image
+            src={entry.data.heroImage}
+            alt={entry.data.heroImageAlt ?? ''}
+            widths={[480, 900]}
+            sizes="(max-width: 900px) 100vw, 900px"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full rounded-lg"
+          />
+        </Container>
+      </Section>
+    )
+  }
+
+  <Section background="base" spacing="md">
+    <Container width="narrow">
+      <Prose>
+        <Content />
+      </Prose>
+    </Container>
+  </Section>
+
+  {
+    suggestions.length > 0 && (
+      <Section background="muted" spacing="md">
+        <Container gap="lg">
+          <Heading level={2}>Keep reading</Heading>
+          <ul class="grid w-full gap-6 sm:grid-cols-3">
+            {suggestions.map((item) => (
+              <Card as="li" variant="outlined">
+                <Heading level={3} size="sm">
+                  <a
+                    href={`/__collection__/${item.id}/`}
+                    class="text-ink-base no-underline hover:underline"
+                  >
+                    {item.data.title}
+                  </a>
+                </Heading>
+                <p class="text-ink-muted text-sm">{item.data.description}</p>
+              </Card>
+            ))}
+          </ul>
+        </Container>
+      </Section>
+    )
+  }
+</BaseLayout>

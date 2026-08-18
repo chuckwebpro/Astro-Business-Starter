@@ -1,0 +1,257 @@
+---
+/**
+ * Desktop and tablet navigation (md and up).
+ *
+ * Uses the disclosure pattern — a button with aria-expanded/aria-controls per
+ * panel — not role="menubar". Menubar is the ARIA application pattern and puts
+ * screen readers into application mode, which breaks normal page browsing.
+ *
+ * Open/close intent delay is CSS transition-delay so the no-JS baseline keeps
+ * it. JS layers keyboard control, Escape, outside click, and touch toggling.
+ */
+import Container from '../ui/Container.astro';
+import { navigation } from '../../config/navigation';
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const isCurrent = (href: string) =>
+  href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+
+const triggerClass =
+  'inline-flex min-h-11 items-center gap-1 rounded-md px-3 text-base no-underline text-ink-base hover:bg-neutral-100 aria-[current=page]:text-ink-brand aria-[current=page]:font-medium';
+---
+
+<nav aria-label="Primary" class="mega hidden md:block">
+  <ul class="flex items-center gap-1">
+    {
+      navigation.primary.map((item, index) => {
+        const panelId = `mega-panel-${index}`;
+
+        if (!item.panel) {
+          return (
+            <li>
+              <a
+                href={item.href ?? '#'}
+                aria-current={isCurrent(item.href ?? '') ? 'page' : undefined}
+                class={triggerClass}
+              >
+                {item.label}
+              </a>
+            </li>
+          );
+        }
+
+        const columns =
+          item.panel.kind === 'mega'
+            ? item.panel.columns
+            : [{ heading: undefined, links: item.panel.links }];
+        const featured = item.panel.kind === 'mega' ? item.panel.featured : undefined;
+
+        return (
+          <li class="mega-item static">
+            <button
+              type="button"
+              aria-expanded="false"
+              aria-controls={panelId}
+              class={triggerClass}
+            >
+              {item.label}
+              <Icon name="lucide:chevron-down" class="mega-chevron size-4" aria-hidden="true" />
+            </button>
+
+            <div
+              id={panelId}
+              class="mega-panel border-line-base bg-surface-base absolute inset-x-0 top-full border-b shadow-lg"
+            >
+              <Container gap="none" class="max-h-[70vh] overflow-y-auto py-8">
+                <div
+                  class:list={[
+                    'grid w-full gap-x-8 gap-y-6',
+                    // Tablet halves the desktop column count; the panel must
+                    // survive 768px because the mega menu runs there too.
+                    'grid-cols-2',
+                    featured ? 'lg:grid-cols-3' : 'lg:grid-cols-4',
+                  ]}
+                >
+                  {columns.map((column) => (
+                    <div class="flex flex-col gap-2">
+                      {column.heading && (
+                        <h2 class="text-ink-muted text-sm font-semibold tracking-wide uppercase">
+                          {column.heading}
+                        </h2>
+                      )}
+                      <ul class="flex flex-col">
+                        {column.links.map((link) => (
+                          <li>
+                            <a
+                              href={link.href}
+                              aria-current={isCurrent(link.href) ? 'page' : undefined}
+                              class="group/link text-ink-base aria-[current=page]:text-ink-brand flex gap-3 rounded-md p-2 no-underline hover:bg-neutral-100"
+                            >
+                              {link.icon && (
+                                <Icon
+                                  name={link.icon}
+                                  class="text-brand-600 mt-0.5 size-5 shrink-0"
+                                  aria-hidden="true"
+                                />
+                              )}
+                              <span class="flex flex-col">
+                                <span class="font-medium">{link.label}</span>
+                                {link.description && (
+                                  <span class="text-ink-muted text-sm">{link.description}</span>
+                                )}
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+
+                  {featured && (
+                    <div class="bg-surface-muted flex flex-col items-start gap-2 rounded-lg p-5 max-lg:col-span-2">
+                      <h2 class="font-semibold">{featured.title}</h2>
+                      <p class="text-ink-muted text-sm">{featured.body}</p>
+                      <a
+                        href={featured.href}
+                        class="text-ink-brand mt-auto inline-flex min-h-11 items-center gap-1 font-medium"
+                      >
+                        {featured.cta}
+                        <Icon name="lucide:arrow-right" class="size-4" aria-hidden="true" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </Container>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>
+
+<style>
+  .mega-panel {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    /* Closing lingers ~260ms so diagonal travel into the panel survives. */
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease,
+      visibility 0s linear 260ms;
+  }
+
+  .mega-chevron {
+    transition: transform 160ms ease;
+  }
+
+  /* Hover intent only where hovering is real — a touch tablet would otherwise
+     open and immediately close the panel on first tap. */
+  @media (hover: hover) {
+    .mega-item:hover > .mega-panel {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      transition-delay: 120ms, 120ms, 0s;
+    }
+
+    .mega-item:hover > button > .mega-chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  /* No-JS baseline: keyboard focus alone opens the panel. Disabled once JS is
+     present, otherwise returning focus to the trigger on Escape would reopen it. */
+  :global(html:not(.js)) .mega-item:focus-within > .mega-panel {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .mega-item[data-open='true'] > .mega-panel {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .mega-item[data-open='true'] > button > .mega-chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mega-panel,
+    .mega-chevron {
+      transition-duration: 0s;
+    }
+  }
+</style>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('nav.mega');
+
+  if (nav) {
+    const items = Array.from(nav.querySelectorAll<HTMLLIElement>('.mega-item'));
+    const canHover = window.matchMedia('(hover: hover)').matches;
+    let closeTimer: number | undefined;
+
+    const setOpen = (item: HTMLLIElement, open: boolean) => {
+      item.dataset.open = String(open);
+      item.querySelector('button')?.setAttribute('aria-expanded', String(open));
+    };
+
+    // Only one panel open at a time.
+    const closeAll = (except?: HTMLLIElement) => {
+      for (const item of items) if (item !== except) setOpen(item, false);
+    };
+
+    for (const item of items) {
+      const trigger = item.querySelector<HTMLButtonElement>('button');
+      if (!trigger) continue;
+
+      trigger.addEventListener('click', () => {
+        const open = item.dataset.open === 'true';
+        closeAll(item);
+        setOpen(item, !open);
+      });
+
+      if (canHover) {
+        item.addEventListener('mouseenter', () => {
+          window.clearTimeout(closeTimer);
+          closeAll(item);
+          setOpen(item, true);
+        });
+
+        item.addEventListener('mouseleave', () => {
+          window.clearTimeout(closeTimer);
+          closeTimer = window.setTimeout(() => setOpen(item, false), 260);
+        });
+      }
+
+      // Tabbing out of the panel closes it; Escape returns focus to the trigger.
+      item.addEventListener('focusout', (event) => {
+        const next = event.relatedTarget as Node | null;
+        if (!next || !item.contains(next)) setOpen(item, false);
+      });
+
+      item.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && item.dataset.open === 'true') {
+          setOpen(item, false);
+          trigger.focus();
+        }
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      if (!nav.contains(event.target as Node)) closeAll();
+    });
+  }
+</script>

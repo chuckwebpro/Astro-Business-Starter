@@ -1,0 +1,87 @@
+---
+/**
+ * Facade pattern: renders a static placeholder and only loads the Google Maps
+ * iframe on click. An eager map iframe costs ~700KB and several hundred ms of
+ * main-thread time on every page it appears.
+ */
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import { site, formattedAddress } from '../../config/site';
+import type { BlockProps } from './types';
+
+interface Props extends BlockProps {
+  /** Defaults to the address in site.ts. */
+  query?: string;
+  zoom?: number;
+  height?: string;
+}
+
+const {
+  background = 'base',
+  spacing = 'md',
+  align = 'start',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  query = formattedAddress,
+  zoom = 15,
+  height = '420px',
+} = Astro.props;
+
+const embedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=${zoom}&output=embed`;
+const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`;
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <div
+      class="map-facade border-line-base bg-surface-muted relative w-full overflow-hidden rounded-lg border"
+      style={`height:${height}`}
+      data-src={embedSrc}
+    >
+      <button
+        type="button"
+        class="text-ink-base absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-3 p-6 text-center"
+      >
+        <Icon name="lucide:map-pin" class="text-brand-600 size-10" aria-hidden="true" />
+        <span class="font-medium">Load map</span>
+        <span class="text-ink-muted max-w-reading text-sm">{query}</span>
+      </button>
+    </div>
+
+    <div class="flex flex-wrap gap-4 text-sm">
+      <a href={directionsHref} rel="noopener noreferrer" target="_blank" class="text-ink-brand">
+        Get directions
+      </a>
+      <a href={`tel:${site.business.phoneHref}`} class="text-ink-brand">
+        Call {site.business.phone}
+      </a>
+    </div>
+  </Container>
+</Section>
+
+<script>
+  for (const facade of document.querySelectorAll<HTMLElement>('.map-facade')) {
+    facade.querySelector('button')?.addEventListener('click', () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = facade.dataset.src ?? '';
+      iframe.title = 'Location map';
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      iframe.className = 'absolute inset-0 h-full w-full border-0';
+      facade.replaceChildren(iframe);
+    });
+  }
+</script>

@@ -1,0 +1,44 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Heading from '../ui/Heading.astro';
+import Button from '../ui/Button.astro';
+import type { BlockProps, BlockAction } from './types';
+
+interface Props extends BlockProps {
+  actions: BlockAction[];
+}
+
+const {
+  background = 'brand',
+  spacing = 'md',
+  align = 'center',
+  width = 'narrow',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  actions,
+} = Astro.props;
+
+// On a coloured band the default primary button disappears into the surface.
+const defaultVariant = background === 'brand' || background === 'inverse' ? 'inverse' : 'primary';
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="md">
+    {eyebrow && <p class="text-sm font-semibold tracking-wide uppercase opacity-80">{eyebrow}</p>}
+    {title && <Heading level={titleLevel}>{title}</Heading>}
+    {body && <p class="max-w-reading text-lg opacity-90">{body}</p>}
+
+    <div class:list={['flex flex-wrap gap-3', align === 'center' && 'justify-center']}>
+      {
+        actions.map((action) => (
+          <Button href={action.href} variant={action.variant ?? defaultVariant} size="lg">
+            {action.label}
+          </Button>
+        ))
+      }
+    </div>
+  </Container>
+</Section>

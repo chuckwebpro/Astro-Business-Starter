@@ -1,0 +1,61 @@
+---
+/**
+ * Only mounted when site.consent === 'banner' (see BaseLayout). US-only clients
+ * on log-based analytics do not need this, and a banner costs conversions.
+ */
+import Button from '../ui/Button.astro';
+---
+
+<div
+  id="consent-banner"
+  hidden
+  class="border-line-base bg-surface-base fixed inset-x-0 bottom-0 z-100 border-t shadow-lg"
+>
+  <div
+    class="max-w-page mx-auto flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between"
+  >
+    <p class="text-ink-muted text-sm">
+      We use cookies for analytics and advertising. See our <a
+        href="/privacy/"
+        class="text-ink-brand">privacy policy</a
+      >.
+    </p>
+    <div class="flex shrink-0 gap-2">
+      <Button id="consent-decline" variant="secondary" size="sm">Decline</Button>
+      <Button id="consent-accept" size="sm">Accept</Button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const banner = document.querySelector<HTMLElement>('#consent-banner');
+
+  if (banner && !localStorage.getItem('consent')) {
+    banner.hidden = false;
+  }
+
+  const decide = (value: 'granted' | 'denied') => {
+    localStorage.setItem('consent', value);
+    if (banner) banner.hidden = true;
+
+    if (value === 'granted') {
+      window.gtag?.('consent', 'update', {
+        ad_storage: 'granted',
+        analytics_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+      });
+      window.dispatchEvent(new Event('consent:granted'));
+    }
+  };
+
+  document.querySelector('#consent-accept')?.addEventListener('click', () => decide('granted'));
+  document.querySelector('#consent-decline')?.addEventListener('click', () => decide('denied'));
+
+  // Footer "Cookie settings" link reopens the choice.
+  document.querySelector('[data-consent-reopen]')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    localStorage.removeItem('consent');
+    if (banner) banner.hidden = false;
+  });
+</script>

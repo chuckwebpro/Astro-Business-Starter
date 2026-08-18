@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.astro/
+.lighthouseci/
+
+# Generated from tokens/*.json on predev / prebuild / preverify.
+src/styles/theme.css
+
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.production

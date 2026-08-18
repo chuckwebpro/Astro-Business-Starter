@@ -1,0 +1,57 @@
+---
+/**
+ * Outer band. Always full viewport width; owns background and vertical rhythm.
+ * Never sets a max-width — that is Container's job.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+export type SectionBackground = 'base' | 'muted' | 'inverse' | 'brand';
+export type SectionSpacing = 'none' | 'sm' | 'md' | 'lg';
+
+interface Props extends Omit<HTMLAttributes<'section'>, 'class'> {
+  as?: 'section' | 'div' | 'article' | 'aside' | 'footer';
+  background?: SectionBackground;
+  spacing?: SectionSpacing;
+  clip?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'section',
+  background = 'base',
+  spacing = 'md',
+  clip = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const backgrounds: Record<SectionBackground, string> = {
+  base: 'bg-surface-base text-ink-base',
+  muted: 'bg-surface-muted text-ink-base',
+  inverse: 'bg-surface-inverse text-ink-inverse',
+  brand: 'bg-surface-brand text-ink-inverse',
+};
+
+// Symmetric padding: a coloured band needs air on both sides. The seam between
+// two same-background bands is collapsed by a global rule in global.css.
+const spacings: Record<SectionSpacing, string> = {
+  none: '',
+  sm: 'py-section-sm',
+  md: 'py-section',
+  lg: 'py-section-lg',
+};
+---
+
+<Tag
+  data-bg={background}
+  class:list={[
+    'w-full',
+    backgrounds[background],
+    spacings[spacing],
+    clip && 'overflow-hidden',
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+</Tag>

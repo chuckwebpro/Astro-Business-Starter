@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import Container from '../components/ui/Container.astro';
+import Heading from '../components/ui/Heading.astro';
+import Button from '../components/ui/Button.astro';
+import { site } from '../config/site';
+import { Icon } from 'astro-icon/components';
+---
+
+<BaseLayout title="Thank you" description="We've received your message." noindex>
+  <Section background="base" spacing="lg">
+    <Container align="center" gap="md">
+      <Icon name="lucide:circle-check" class="text-brand-600 size-14" aria-hidden="true" />
+      <Heading level={1} size="xl">Thanks — we&rsquo;ve got it</Heading>
+      <p class="max-w-reading text-ink-muted">
+        Your message is on its way to our team. We usually reply the same business day. If
+        it&rsquo;s urgent, calling is faster.
+      </p>
+
+      <div class="flex flex-wrap justify-center gap-3">
+        <Button href={`tel:${site.business.phoneHref}`}>
+          <Icon name="lucide:phone" class="size-4" aria-hidden="true" />
+          {site.business.phone}
+        </Button>
+        <Button href="/" variant="secondary">Back to home</Button>
+      </div>
+    </Container>
+  </Section>
+</BaseLayout>

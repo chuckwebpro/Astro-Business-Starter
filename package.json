@@ -1,0 +1,43 @@
+{
+  "name": "astro-business-starter",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "predev": "node scripts/build-tokens.mjs",
+    "dev": "astro dev",
+    "prebuild": "node scripts/build-tokens.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "preverify": "node scripts/build-tokens.mjs",
+    "verify": "astro check && prettier --check .",
+    "format": "prettier --write .",
+    "audit:lh": "lhci autorun",
+    "audit:a11y": "start-server-and-test preview http://localhost:4321 \"pa11y-ci\"",
+    "audit": "npm run audit:lh && npm run audit:a11y"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.6",
+    "@astrojs/sitemap": "^3.6.0",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@iconify-json/lucide": "^1.2.72",
+    "@tailwindcss/vite": "^4.1.16",
+    "astro": "^5.15.6",
+    "astro-icon": "^1.1.5",
+    "tailwindcss": "^4.1.16"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.5",
+    "@lhci/cli": "^0.15.1",
+    "pa11y-ci": "^4.0.1",
+    "prettier": "^3.6.2",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "start-server-and-test": "^2.1.2",
+    "style-dictionary": "^4.4.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,104 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Card from '../ui/Card.astro';
+import Heading from '../ui/Heading.astro';
+import Button from '../ui/Button.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import type { BlockProps } from './types';
+
+export interface PricingTier {
+  name: string;
+  price: string;
+  /** e.g. 'per visit', 'per month'. */
+  cadence?: string;
+  body?: string;
+  features: string[];
+  action?: { label: string; href: string };
+  featured?: boolean;
+}
+
+interface Props extends BlockProps {
+  items: PricingTier[];
+}
+
+const {
+  background = 'muted',
+  spacing = 'md',
+  align = 'center',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  items,
+} = Astro.props;
+
+const columnClass = items.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3';
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <ul class:list={['grid w-full items-stretch gap-6 text-start', columnClass]}>
+      {
+        items.map((tier) => (
+          <Card
+            as="li"
+            variant={tier.featured ? 'elevated' : 'outlined'}
+            class:list={[tier.featured && 'border-brand-600 border-2']}
+          >
+            <div class="flex items-center justify-between gap-2">
+              <Heading level={titleLevel === 2 ? 3 : 4} size="md">
+                {tier.name}
+              </Heading>
+              {tier.featured && (
+                <span class="bg-brand-50 text-ink-brand rounded-full px-2 py-1 text-xs font-semibold">
+                  Popular
+                </span>
+              )}
+            </div>
+
+            <p class="flex items-baseline gap-1">
+              <span class="text-3xl font-semibold tracking-tight">{tier.price}</span>
+              {tier.cadence && <span class="text-ink-muted text-sm">{tier.cadence}</span>}
+            </p>
+
+            {tier.body && <p class="text-ink-muted text-sm">{tier.body}</p>}
+
+            <ul class="flex flex-1 flex-col gap-2">
+              {tier.features.map((feature) => (
+                <li class="flex items-start gap-2">
+                  <Icon
+                    name="lucide:check"
+                    class="text-brand-600 mt-1 size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span class="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            {tier.action && (
+              <Button
+                href={tier.action.href}
+                variant={tier.featured ? 'primary' : 'secondary'}
+                class="w-full"
+              >
+                {tier.action.label}
+              </Button>
+            )}
+          </Card>
+        ))
+      }
+    </ul>
+  </Container>
+</Section>

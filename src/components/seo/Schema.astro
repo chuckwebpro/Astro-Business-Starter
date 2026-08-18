@@ -1,0 +1,100 @@
+---
+import { site } from '../../config/site';
+
+export interface BreadcrumbEntry {
+  name: string;
+  href: string;
+}
+
+export interface FaqEntry {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  breadcrumbs?: BreadcrumbEntry[];
+  faqs?: FaqEntry[];
+  service?: { name: string; description?: string };
+}
+
+const { breadcrumbs, faqs, service } = Astro.props;
+
+const businessId = `${site.url}/#business`;
+const abs = (path: string) => new URL(path, site.url).href;
+
+const graph: Record<string, unknown>[] = [
+  {
+    '@type': site.business.schemaType,
+    '@id': businessId,
+    name: site.name,
+    legalName: site.legalName,
+    description: site.description,
+    url: site.url,
+    telephone: site.business.phone,
+    email: site.business.email,
+    priceRange: site.business.priceRange,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: site.business.address.street,
+      addressLocality: site.business.address.locality,
+      addressRegion: site.business.address.region,
+      postalCode: site.business.address.postalCode,
+      addressCountry: site.business.address.country,
+    },
+    ...(site.business.geo && {
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: site.business.geo.latitude,
+        longitude: site.business.geo.longitude,
+      },
+    }),
+    openingHours: site.business.hours,
+    sameAs: Object.values(site.social).filter(Boolean),
+  },
+  {
+    '@type': 'WebSite',
+    '@id': `${site.url}/#website`,
+    url: site.url,
+    name: site.name,
+    publisher: { '@id': businessId },
+    inLanguage: site.locale,
+  },
+];
+
+if (breadcrumbs?.length) {
+  graph.push({
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: crumb.name,
+      item: abs(crumb.href),
+    })),
+  });
+}
+
+if (faqs?.length) {
+  graph.push({
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+    })),
+  });
+}
+
+if (service) {
+  graph.push({
+    '@type': 'Service',
+    name: service.name,
+    description: service.description,
+    provider: { '@id': businessId },
+    areaServed: site.business.address.region,
+  });
+}
+
+const jsonLd = { '@context': 'https://schema.org', '@graph': graph };
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />

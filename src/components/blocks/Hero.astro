@@ -1,0 +1,98 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import Heading from '../ui/Heading.astro';
+import Button from '../ui/Button.astro';
+import { Icon } from 'astro-icon/components';
+import type { BlockProps, BlockAction } from './types';
+
+interface Props extends Omit<BlockProps, 'titleLevel'> {
+  title: string;
+  actions?: BlockAction[];
+  image?: ImageMetadata;
+  imageAlt?: string;
+  /** Places the image first on desktop; small screens always stack image-first. */
+  reverse?: boolean;
+  bullets?: string[];
+}
+
+const {
+  background = 'muted',
+  spacing = 'lg',
+  align = 'start',
+  width = 'page',
+  eyebrow,
+  title,
+  body,
+  actions = [],
+  image,
+  imageAlt = '',
+  reverse = false,
+  bullets = [],
+} = Astro.props;
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} layout={image ? 'row' : 'stack'} align={align} gap="lg">
+    <div
+      class:list={['flex flex-col items-start gap-6', image && 'md:w-1/2', reverse && 'md:order-2']}
+    >
+      {
+        eyebrow && (
+          <p class="text-ink-brand text-sm font-semibold tracking-wide uppercase">{eyebrow}</p>
+        )
+      }
+
+      <Heading level={1}>{title}</Heading>
+
+      {body && <p class="max-w-reading text-lg opacity-90">{body}</p>}
+
+      {
+        bullets.length > 0 && (
+          <ul class="flex flex-col gap-2">
+            {bullets.map((bullet) => (
+              <li class="flex items-start gap-3">
+                <Icon
+                  name="lucide:check"
+                  class="mt-1 size-5 shrink-0 opacity-80"
+                  aria-hidden="true"
+                />
+                <span>{bullet}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      {
+        actions.length > 0 && (
+          <div class="flex flex-wrap gap-3">
+            {actions.map((action) => (
+              <Button href={action.href} variant={action.variant ?? 'primary'} size="lg">
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    {
+      image && (
+        <div class:list={['w-full md:w-1/2', reverse && 'md:order-1']}>
+          <Image
+            src={image}
+            alt={imageAlt}
+            widths={[480, 768, 1024]}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full rounded-lg object-cover"
+          />
+        </div>
+      )
+    }
+  </Container>
+</Section>

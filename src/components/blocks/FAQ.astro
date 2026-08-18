@@ -1,0 +1,89 @@
+---
+/**
+ * Native <details> accordion — no JS, keyboard-operable for free.
+ * Emits FAQPage structured data unless `schema` is disabled.
+ */
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import BlockHeader from './BlockHeader.astro';
+import { Icon } from 'astro-icon/components';
+import type { BlockProps } from './types';
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface Props extends BlockProps {
+  items: FaqItem[];
+  schema?: boolean;
+  /** Allows several answers open at once. */
+  multiple?: boolean;
+}
+
+const {
+  background = 'base',
+  spacing = 'md',
+  align = 'start',
+  width = 'narrow',
+  eyebrow,
+  title,
+  body,
+  titleLevel = 2,
+  items,
+  schema = true,
+  multiple = false,
+} = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
+---
+
+<Section background={background} spacing={spacing}>
+  <Container width={width} align={align} gap="lg">
+    <BlockHeader
+      eyebrow={eyebrow}
+      title={title}
+      body={body}
+      level={titleLevel}
+      centered={align === 'center'}
+    />
+
+    <div class="w-full">
+      {
+        items.map((item) => (
+          <details name={multiple ? undefined : 'faq'} class="border-line-base group border-b">
+            <summary class="flex min-h-14 cursor-pointer items-center justify-between gap-4 py-2 font-medium">
+              {item.question}
+              <Icon
+                name="lucide:plus"
+                class="size-5 shrink-0 transition-transform group-open:rotate-45"
+                aria-hidden="true"
+              />
+            </summary>
+            <p class="text-ink-muted max-w-reading pb-4">{item.answer}</p>
+          </details>
+        ))
+      }
+    </div>
+  </Container>
+</Section>
+
+{schema && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />}
+
+<style>
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary {
+    list-style: none;
+  }
+</style>

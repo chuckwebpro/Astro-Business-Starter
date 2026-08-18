@@ -1,0 +1,76 @@
+---
+/**
+ * Inner wrapper. Centres content at a max width and owns its arrangement.
+ * A block needing edge-to-edge media simply omits Container rather than
+ * asking for a "full width" variant.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+export type ContainerWidth = 'page' | 'narrow' | 'reading';
+export type ContainerLayout = 'stack' | 'row' | 'bar' | 'grid';
+export type ContainerAlign = 'start' | 'center' | 'end';
+export type ContainerGap = 'none' | 'sm' | 'md' | 'lg';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'class'> {
+  as?: 'div' | 'header' | 'footer' | 'nav';
+  width?: ContainerWidth;
+  layout?: ContainerLayout;
+  align?: ContainerAlign;
+  gap?: ContainerGap;
+  class?: string;
+}
+
+const {
+  as: Tag = 'div',
+  width = 'page',
+  layout = 'stack',
+  align = 'start',
+  gap = 'md',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const widths: Record<ContainerWidth, string> = {
+  page: 'max-w-page',
+  narrow: 'max-w-narrow',
+  reading: 'max-w-reading',
+};
+
+// Generic arrangements for simple blocks. Blocks with bespoke internal layout
+// (ServicesGrid, Team, Pricing) use `stack` and own their grid inside.
+const layouts: Record<ContainerLayout, string> = {
+  stack: 'flex flex-col',
+  // Stacks on small screens — for content that reads as columns on desktop.
+  row: 'flex flex-col max-md:items-stretch md:flex-row md:items-center',
+  // Never stacks — for header/footer bars that stay horizontal at every width.
+  bar: 'flex flex-row items-center',
+  grid: 'grid',
+};
+
+const alignments: Record<ContainerAlign, string> = {
+  start: 'items-start text-start',
+  center: 'items-center text-center',
+  end: 'items-end text-end',
+};
+
+const gaps: Record<ContainerGap, string> = {
+  none: 'gap-0',
+  sm: 'gap-4',
+  md: 'gap-block',
+  lg: 'gap-12',
+};
+---
+
+<Tag
+  class:list={[
+    'px-gutter mx-auto w-full',
+    widths[width],
+    layouts[layout],
+    layout !== 'grid' && layout !== 'bar' && alignments[align],
+    gaps[gap],
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+</Tag>

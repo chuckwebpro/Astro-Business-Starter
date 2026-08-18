@@ -1,0 +1,72 @@
+---
+import { site } from '../../config/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Suppresses the "| Site Name" suffix — used on the home page. */
+  titleExact?: boolean;
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  publishedTime?: string;
+  modifiedTime?: string;
+}
+
+const {
+  title,
+  description = site.description,
+  titleExact = false,
+  image = site.defaultOgImage,
+  imageAlt,
+  type = 'website',
+  noindex = false,
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+const pageTitle = !title
+  ? `${site.name} — ${site.tagline}`
+  : titleExact
+    ? title
+    : `${title} | ${site.name}`;
+
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const ogImage = new URL(image, site.url).href;
+---
+
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+{!noindex && <meta name="robots" content="index, follow, max-image-preview:large" />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:locale" content={site.locale.replace('-', '_')} />
+{imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+{publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={pageTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{
+  site.verification.google && (
+    <meta name="google-site-verification" content={site.verification.google} />
+  )
+}
+{site.verification.bing && <meta name="msvalidate.01" content={site.verification.bing} />}
+{
+  site.verification.meta && (
+    <meta name="facebook-domain-verification" content={site.verification.meta} />
+  )
+}

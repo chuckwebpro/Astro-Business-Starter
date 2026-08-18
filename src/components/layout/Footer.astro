@@ -1,0 +1,125 @@
+---
+import Section from '../ui/Section.astro';
+import Container from '../ui/Container.astro';
+import { navigation } from '../../config/navigation';
+import { site, formattedAddress } from '../../config/site';
+import { Icon } from 'astro-icon/components';
+
+const socialIcons: Record<string, string> = {
+  facebook: 'lucide:facebook',
+  instagram: 'lucide:instagram',
+  linkedin: 'lucide:linkedin',
+  x: 'lucide:twitter',
+  youtube: 'lucide:youtube',
+  tiktok: 'lucide:music',
+};
+
+const socials = Object.entries(site.social).filter(([, href]) => Boolean(href)) as [
+  string,
+  string,
+][];
+const year = new Date().getFullYear();
+---
+
+<Section as="footer" background="inverse" spacing="md">
+  <Container gap="lg">
+    <div class="grid w-full gap-10 md:grid-cols-4">
+      <div class="flex flex-col gap-3 md:col-span-2">
+        <a href="/" class="text-ink-inverse flex items-center gap-2 font-semibold no-underline">
+          <Icon name="lucide:hexagon" class="size-7" aria-hidden="true" />
+          <span>{site.name}</span>
+        </a>
+        <p class="max-w-reading text-neutral-300">{site.tagline}</p>
+
+        <address class="mt-2 flex flex-col gap-2 text-neutral-300 not-italic">
+          <a
+            href={`tel:${site.business.phoneHref}`}
+            class="text-ink-inverse inline-flex min-h-11 items-center gap-2 no-underline"
+          >
+            <Icon name="lucide:phone" class="size-4" aria-hidden="true" />
+            {site.business.phone}
+          </a>
+          <a
+            href={`mailto:${site.business.email}`}
+            class="text-ink-inverse inline-flex min-h-11 items-center gap-2 no-underline"
+          >
+            <Icon name="lucide:mail" class="size-4" aria-hidden="true" />
+            {site.business.email}
+          </a>
+          <span class="flex items-start gap-2">
+            <Icon name="lucide:map-pin" class="mt-1 size-4 shrink-0" aria-hidden="true" />
+            {formattedAddress}
+          </span>
+        </address>
+
+        <dl class="mt-2 text-neutral-300">
+          <dt class="sr-only">Opening hours</dt>
+          {site.business.hours.map((line) => <dd>{line}</dd>)}
+        </dl>
+      </div>
+
+      {
+        navigation.footer.map((group) => (
+          <nav aria-label={group.heading} class="flex flex-col gap-3">
+            <h2 class="text-sm font-semibold tracking-wide text-neutral-400 uppercase">
+              {group.heading}
+            </h2>
+            <ul class="flex flex-col gap-1">
+              {group.links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    class="hover:text-ink-inverse inline-flex min-h-11 items-center text-neutral-300 no-underline"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+
+    {
+      socials.length > 0 && (
+        <ul class="flex gap-2">
+          {socials.map(([platform, href]) => (
+            <li>
+              <a
+                href={href}
+                rel="noopener noreferrer"
+                target="_blank"
+                class="hover:text-ink-inverse inline-flex size-11 items-center justify-center rounded-md text-neutral-300 no-underline hover:bg-neutral-800"
+              >
+                <span class="sr-only">{platform}</span>
+                <Icon
+                  name={socialIcons[platform] ?? 'lucide:link'}
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <div
+      class="flex w-full flex-col gap-3 border-t border-neutral-800 pt-6 text-sm text-neutral-400 md:flex-row md:items-center md:justify-between"
+    >
+      <p>&copy; {year} {site.legalName ?? site.name}. All rights reserved.</p>
+      <ul class="flex flex-wrap gap-4">
+        {
+          navigation.legal.map((link) => (
+            <li>
+              <a href={link.href} class="hover:text-ink-inverse text-neutral-400 no-underline">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </Container>
+</Section>

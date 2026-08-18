@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import Container from '../components/ui/Container.astro';
+import Heading from '../components/ui/Heading.astro';
+import Button from '../components/ui/Button.astro';
+import { navigation } from '../config/navigation';
+import { site } from '../config/site';
+---
+
+<BaseLayout title="Page not found" noindex>
+  <Section background="base" spacing="lg">
+    <Container align="center" gap="md">
+      <p class="text-ink-muted text-sm font-semibold tracking-wide uppercase">Error 404</p>
+      <Heading level={1} size="xl">We couldn&rsquo;t find that page</Heading>
+      <p class="max-w-reading text-ink-muted">
+        The link may be out of date, or the page may have moved. Try one of these instead.
+      </p>
+
+      <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+        {
+          navigation.primary.map((item) => (
+            <li>
+              <a href={item.href ?? '/'} class="text-ink-brand inline-flex min-h-11 items-center">
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="flex flex-wrap justify-center gap-3">
+        <Button href="/">Back to home</Button>
+        <Button href={`tel:${site.business.phoneHref}`} variant="secondary">
+          Call {site.business.phone}
+        </Button>
+      </div>
+    </Container>
+  </Section>
+</BaseLayout>
