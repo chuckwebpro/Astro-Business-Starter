@@ -24,23 +24,23 @@
     "php:dev": "npm run build && npm run php:install && npm run php:serve"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.6",
-    "@astrojs/sitemap": "^3.6.0",
-    "@fontsource-variable/inter": "^5.2.8",
-    "@iconify-json/lucide": "^1.2.72",
-    "@tailwindcss/vite": "^4.1.16",
-    "astro": "^5.15.6",
-    "astro-icon": "^1.1.5",
-    "tailwindcss": "^4.1.16"
+    "@astrojs/mdx": "^8.0.2",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@iconify-json/lucide": "^1.2.136",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.5",
+    "astro-icon": "^1.2.0",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.5",
+    "@astrojs/check": "^0.9.10",
     "@lhci/cli": "^0.15.1",
-    "pa11y-ci": "^4.0.1",
-    "prettier": "^3.6.2",
+    "pa11y-ci": "^4.1.1",
+    "prettier": "^3.9.9",
     "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-tailwindcss": "^0.6.14",
-    "start-server-and-test": "^2.1.2",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "start-server-and-test": "^2.1.5",
     "style-dictionary": "^4.4.0",
     "typescript": "^5.9.3"
   }
